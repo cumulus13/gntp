@@ -43,7 +43,7 @@
 //!
 //! ## Examples
 //!
-//! See the [examples](https://github.com/cumulus13/gntp/tree/main/examples) directory for more usage examples.
+//! See the [examples](https://github.com/cumulus13/gntp/tree/master/examples) directory for more usage examples.
 
 use std::io::{Read, Write};
 use std::net::TcpStream;
