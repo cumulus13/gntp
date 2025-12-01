@@ -12,3 +12,9 @@ Cargo.lock
 .idea/
 # Added entries (1 items)
 *sublime*
+
+# Added entries (4 items)
+mkfile.jpg
+examples/mkfile.jpg
+src/mkfile.jpg
+*.exe
