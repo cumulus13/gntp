@@ -20,7 +20,7 @@ path = "examples/error_handling.rs"
 
 [package]
 name = "gntp"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 authors = [ "Hadi Cahyadi <cumulus13@gmail.com>",]
 description = "A complete Growl Notification Transport Protocol (GNTP) client library for Rust"

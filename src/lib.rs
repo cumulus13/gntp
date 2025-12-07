@@ -249,11 +249,8 @@ impl GntpClient {
             packet.push_str(CRLF);
         }
         
-        // End of message
-        packet.push_str(CRLF);
-        
         // Send packet
-        let response = self.send_packet(&packet, &resources)?;
+        let response = self.send_packet_fixed(&packet, &resources)?;
         self.registered = true;
         
         Ok(response)
@@ -308,22 +305,19 @@ impl GntpClient {
         
         packet.push_str(CRLF);
         
-        // Add binary resources
+        // Binary resources section
         for resource in &resources {
             packet.push_str(&format!("Identifier: {}{}", resource.identifier, CRLF));
             packet.push_str(&format!("Length: {}{}", resource.data.len(), CRLF));
             packet.push_str(CRLF);
         }
         
-        // End of message
-        packet.push_str(CRLF);
-        
         // Send packet
-        self.send_packet(&packet, &resources)
+        self.send_packet_fixed(&packet, &resources)
     }
     
-    /// Internal: Send packet to server
-    fn send_packet(&self, packet: &str, resources: &[Resource]) -> Result<String, GntpError> {
+    /// Send packet with correct binary resource handling
+    fn send_packet_fixed(&self, packet: &str, resources: &[Resource]) -> Result<String, GntpError> {
         let address = format!("{}:{}", self.host, self.port);
         
         let mut stream = TcpStream::connect(&address)
@@ -341,6 +335,9 @@ impl GntpClient {
             stream.write_all(&resource.data)?;
             stream.write_all(CRLF.as_bytes())?;
         }
+        
+        // 3. Message termination - double CRLF
+        stream.write_all(CRLF.as_bytes())?;
         
         stream.flush()?;
         
@@ -384,4 +381,20 @@ impl NotifyOptions {
         self.icon = Some(icon);
         self
     }
+}
+// ============================================================================
+// HELPER: Debug function to see the packets sent
+// ============================================================================
+
+#[allow(dead_code)]
+fn debug_packet(packet: &str, resources: &[Resource]) {
+    println!("=== GNTP PACKET DEBUG ===");
+    println!("{}", packet);
+    
+    for (i, resource) in resources.iter().enumerate() {
+        println!("Binary Resource #{}: {} bytes (ID: {})", 
+            i + 1, resource.data.len(), resource.identifier);
+    }
+    
+    println!("=== END PACKET ===\n");
 }
