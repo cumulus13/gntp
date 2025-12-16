@@ -1,44 +1,81 @@
-[[example]]
-name = "basic"
-path = "examples/basic.rs"
-
-[[example]]
-name = "with_icon"
-path = "examples/with_icon.rs"
-
-[[example]]
-name = "multiple_types"
-path = "examples/multiple_types.rs"
-
-[[example]]
-name = "with_options"
-path = "examples/with_options.rs"
-
-[[example]]
-name = "error_handling"
-path = "examples/error_handling.rs"
+bin = [
+    { name = "sendgrowl", path = "src/sendgrowl.rs" },
+]
+example = [
+    { name = "basic", path = "examples/basic.rs" },
+    { name = "with_icon", path = "examples/with_icon.rs" },
+    { name = "multiple_types", path = "examples/multiple_types.rs" },
+    { name = "remote", path = "examples/remote.rs" },
+    { name = "android", path = "examples/android.rs" },
+    { name = "error_handling", path = "examples/error_handling.rs" },
+]
 
 [package]
 name = "gntp"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
-authors = [ "Hadi Cahyadi <cumulus13@gmail.com>",]
-description = "A complete Growl Notification Transport Protocol (GNTP) client library for Rust"
+authors = [
+    "Hadi Cahyadi <cumulus13@gmail.com>",
+]
+description = "Production-ready GNTP (Growl Notification Transport Protocol) client with Windows/Android compatibility and multiple icon delivery modes"
 documentation = "https://docs.rs/gntp"
 homepage = "https://github.com/cumulus13/gntp"
 repository = "https://github.com/cumulus13/gntp"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
-keywords = [ "gntp", "growl", "notification", "desktop", "alert",]
-categories = [ "api-bindings", "network-programming",]
-rust-version = "1.70"
+keywords = [
+    "gntp",
+    "growl",
+    "notification",
+    "desktop",
+    "android",
+]
+categories = [
+    "api-bindings",
+    "os::windows-apis",
+    "network-programming",
+    "os::android-apis",
+]
+exclude = [
+    "examples/icons/*",
+    ".gitignore",
+    "build.bat",
+    "README.md.0",
+    "sendgrowl.exe",
+]
+
+[lib]
+name = "gntp"
+path = "src/lib.rs"
+
+[dependencies.uuid]
+version = "1.0"
+features = [
+    "v4",
+]
+
+[dependencies.clap]
+version = "4"
+features = [
+    "derive",
+]
+optional = true
+
+[dependencies.clap-version-flag]
+version = "1"
+optional = true
 
 [dev-dependencies]
 
-[dependencies.uuid]
-version = "1.6"
-features = [ "v4",]
+[features]
+default = []
+cli = [
+    "clap",
+    "clap-version-flag",
+]
 
-[package.metadata.docs.rs]
-all-features = true
-rustdoc-args = [ "--cfg", "docsrs",]
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

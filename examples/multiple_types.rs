@@ -1,71 +1,66 @@
 // examples/multiple_types.rs
-// GNTP with multiple notification types
+// Example: Multiple notification types (info, warning, error)
+//
 // Run with: cargo run --example multiple_types
 
-use gntp::{GntpClient, NotificationType};
-use std::thread;
-use std::time::Duration;
+use gntp::{GntpClient, NotificationType, IconMode};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Multiple Notification Types Example ===\n");
     
     // Create GNTP client
-    let mut client = GntpClient::new("Multi Type App");
+    let mut client = GntpClient::new("Multi-Type App")
+        .with_icon_mode(IconMode::DataUrl);
     
     // Define multiple notification types
-    println!("Defining 4 notification types:");
-    println!("  • info    - Information messages");
-    println!("  • warning - Warning messages");
-    println!("  • error   - Error messages");
-    println!("  • success - Success messages");
+    let info = NotificationType::new("info")
+        .with_display_name("Information")
+        .with_enabled(true);
     
-    let notifications = vec![
-        NotificationType::new("info")
-            .with_display_name("Information")
-            .with_enabled(true),
-        
-        NotificationType::new("warning")
-            .with_display_name("Warning")
-            .with_enabled(true),
-        
-        NotificationType::new("error")
-            .with_display_name("Error")
-            .with_enabled(true),
-        
-        NotificationType::new("success")
-            .with_display_name("Success")
-            .with_enabled(true),
-    ];
+    let warning = NotificationType::new("warning")
+        .with_display_name("Warning")
+        .with_enabled(true);
+    
+    let error = NotificationType::new("error")
+        .with_display_name("Error")
+        .with_enabled(true);
     
     // Register all types at once
-    println!("\nRegistering all notification types...");
-    client.register(notifications)?;
-    println!("✓ All types registered successfully");
+    println!("Registering notification types...");
+    client.register(vec![info, warning, error])?;
+    println!("✓ Registered 3 notification types\n");
     
-    // Send notifications of different types
-    println!("\nSending notifications (one per second):");
+    // Send different types of notifications
+    println!("Sending info notification...");
+    client.notify(
+        "info",
+        "System Information",
+        "Application started successfully"
+    )?;
+    println!("✓ Info sent\n");
     
-    println!("  [1/4] Sending info notification...");
-    client.notify("info", "Information", "This is an informational message")?;
-    println!("  ✓ Info sent");
-    thread::sleep(Duration::from_millis(1000));
+    std::thread::sleep(std::time::Duration::from_secs(2));
     
-    println!("  [2/4] Sending warning notification...");
-    client.notify("warning", "Warning", "This is a warning message")?;
-    println!("  ✓ Warning sent");
-    thread::sleep(Duration::from_millis(1000));
+    println!("Sending warning notification...");
+    client.notify(
+        "warning",
+        "Low Disk Space",
+        "Only 10% disk space remaining"
+    )?;
+    println!("✓ Warning sent\n");
     
-    println!("  [3/4] Sending error notification...");
-    client.notify("error", "Error", "This is an error message")?;
-    println!("  ✓ Error sent");
-    thread::sleep(Duration::from_millis(1000));
+    std::thread::sleep(std::time::Duration::from_secs(2));
     
-    println!("  [4/4] Sending success notification...");
-    client.notify("success", "Success", "Operation completed successfully!")?;
-    println!("  ✓ Success sent");
+    println!("Sending error notification...");
+    client.notify(
+        "error",
+        "Critical Error",
+        "Database connection failed"
+    )?;
+    println!("✓ Error sent\n");
     
-    println!("\n✅ Example completed!");
-    println!("You should have seen 4 different notifications.");
+    println!("✅ Example completed!");
+    println!("\nYou should see 3 different notifications on your screen.");
     
     Ok(())
 }

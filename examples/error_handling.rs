@@ -1,132 +1,92 @@
 // examples/error_handling.rs
-// Proper GNTP error handling example
+// Example: Proper error handling patterns
+//
 // Run with: cargo run --example error_handling
 
-use gntp::{GntpClient, NotificationType};
+use gntp::{GntpClient, NotificationType, Resource, IconMode, GntpError};
 
 fn main() {
     println!("=== Error Handling Example ===\n");
     
-    // Try to connect to default server (localhost:23053)
-    example_with_error_handling();
-    
-    println!("\n---\n");
-    
-    // Try to connect to wrong server
-    example_wrong_server();
-    
-    println!("\n---\n");
-    
-    // Try to notify without registering
-    example_notify_without_register();
-}
-
-fn example_with_error_handling() {
-    println!("Example 1: Proper error handling\n");
-    
-    let mut client = GntpClient::new("Error Example")
-        .with_host("localhost")
-        .with_port(23053);
-    
-    let notification = NotificationType::new("test")
-        .with_display_name("Test Notification");
-    
-    // Try to register
-    println!("Attempting to register...");
-    match client.register(vec![notification]) {
-        Ok(response) => {
-            println!("✓ Registration successful!");
-            println!("  Server response: {}", response.lines().next().unwrap_or(""));
-            
-            // Now try to notify
-            println!("\nAttempting to send notification...");
-            match client.notify("test", "Success!", "Connected to Growl successfully") {
-                Ok(_) => println!("✓ Notification sent"),
-                Err(e) => println!("✗ Notification error: {}", e),
-            }
-        }
-        Err(e) => {
-            println!("✗ Registration failed: {}", e);
-            println!("\n📋 Troubleshooting:");
-            println!("  1. Is Growl running?");
-            println!("     • Windows: Check system tray for Growl icon");
-            println!("     • macOS: Check if Growl is installed and running");
-            println!("\n  2. Check Growl settings:");
-            println!("     • Allow network notifications");
-            println!("     • Port should be 23053 (default)");
-            println!("\n  3. Firewall:");
-            println!("     • Make sure port 23053 is not blocked");
-            println!("\n  4. Install Growl:");
-            println!("     • Windows: https://github.com/briandunnington/growl-for-windows/releases");
-            println!("     • macOS: Growl for Mac or compatible client");
-        }
+    // Example 1: Handle connection errors
+    println!("1. Testing connection to non-existent server...");
+    match test_connection() {
+        Ok(_) => println!("   ✓ Connected\n"),
+        Err(e) => println!("   ✗ Failed (expected): {}\n", e),
     }
+    
+    // Example 2: Handle file not found
+    println!("2. Testing with non-existent icon...");
+    match test_missing_icon() {
+        Ok(_) => println!("   ✓ Icon loaded\n"),
+        Err(e) => println!("   ✗ Failed (expected): {}\n", e),
+    }
+    
+    // Example 3: Handle protocol errors
+    println!("3. Testing notify before register...");
+    match test_protocol_error() {
+        Ok(_) => println!("   ✓ Notification sent\n"),
+        Err(e) => println!("   ✗ Failed (expected): {}\n", e),
+    }
+    
+    // Example 4: Proper error handling with match
+    println!("4. Demonstrating detailed error handling...");
+    demonstrate_error_types();
+    
+    println!("\n✅ Example completed!");
 }
 
-fn example_wrong_server() {
-    println!("Example 2: Wrong server address\n");
-    
-    let mut client = GntpClient::new("Wrong Server")
-        .with_host("192.168.999.999")  // Invalid IP
-        .with_port(23053);
+fn test_connection() -> Result<(), GntpError> {
+    let mut client = GntpClient::new("Test App")
+        .with_host("255.255.255.255") // Invalid host
+        .with_port(65535)
+        .with_icon_mode(IconMode::DataUrl);
     
     let notification = NotificationType::new("test");
-    
-    println!("Attempting to connect to invalid server...");
-    match client.register(vec![notification]) {
-        Ok(_) => println!("✓ Connected (unexpected)"),
-        Err(e) => {
-            println!("✗ Connection failed (expected): {}", e);
-            println!("  This is normal for an invalid server address");
-        }
-    }
-}
-
-fn example_notify_without_register() {
-    println!("Example 3: Notify without registering first\n");
-    
-    let client = GntpClient::new("Unregistered");
-    
-    println!("Attempting to notify WITHOUT registering first...");
-    match client.notify("test", "Test", "This should fail") {
-        Ok(_) => println!("✓ Sent (unexpected)"),
-        Err(e) => {
-            println!("✗ Failed (expected): {}", e);
-            println!("  GNTP requires register() before notify()");
-        }
-    }
-}
-
-// Helper function showing best practices
-#[allow(dead_code)]
-fn best_practice_example() -> Result<(), Box<dyn std::error::Error>> {
-    println!("Best Practice: Graceful error handling\n");
-    
-    // 1. Create client
-    let mut client = GntpClient::new("My App");
-    
-    // 2. Define notifications
-    let notification = NotificationType::new("alert");
-    
-    // 3. Try to register with graceful fallback
-    match client.register(vec![notification]) {
-        Ok(_) => {
-            println!("✓ Growl notifications enabled");
-            
-            // 4. Use notifications throughout your app
-            if let Err(e) = client.notify("alert", "Event", "Something happened") {
-                eprintln!("Warning: Failed to send notification: {}", e);
-                // Continue with app logic - don't crash
-            }
-        }
-        Err(e) => {
-            // Don't crash - just log and continue without notifications
-            eprintln!("Warning: Growl notifications disabled: {}", e);
-            eprintln!("Continuing without notifications...");
-            
-            // Your app continues to work, just without notifications
-        }
-    }
+    client.register(vec![notification])?;
     
     Ok(())
+}
+
+fn test_missing_icon() -> Result<(), GntpError> {
+    let _icon = Resource::from_file("this_file_does_not_exist.png")?;
+    Ok(())
+}
+
+fn test_protocol_error() -> Result<(), GntpError> {
+    let client = GntpClient::new("Test App")
+        .with_icon_mode(IconMode::DataUrl);
+    
+    // Try to notify without registering first
+    client.notify("test", "Title", "Text")?;
+    
+    Ok(())
+}
+
+fn demonstrate_error_types() {
+    let result = test_connection();
+    
+    match result {
+        Ok(_) => {
+            println!("   Success!");
+        }
+        Err(GntpError::ConnectionError(msg)) => {
+            println!("   ✓ Caught ConnectionError:");
+            println!("     - Message: {}", msg);
+            println!("     - Action: Check if Growl is running");
+            println!("     - Action: Verify host/port");
+        }
+        Err(GntpError::IoError(msg)) => {
+            println!("   ✓ Caught IoError:");
+            println!("     - Message: {}", msg);
+            println!("     - Action: Check file permissions");
+            println!("     - Action: Verify file exists");
+        }
+        Err(GntpError::ProtocolError(msg)) => {
+            println!("   ✓ Caught ProtocolError:");
+            println!("     - Message: {}", msg);
+            println!("     - Action: Call register() before notify()");
+            println!("     - Action: Check packet format");
+        }
+    }
 }

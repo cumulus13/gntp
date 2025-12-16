@@ -18,3 +18,9 @@ mkfile.jpg
 examples/mkfile.jpg
 src/mkfile.jpg
 *.exe
+
+# Added entries (1 items)
+README.md.0
+
+# Added entries (1 items)
+*.bat

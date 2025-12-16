@@ -1,40 +1,37 @@
 // examples/basic.rs
 // Basic GNTP notification example
+//
 // Run with: cargo run --example basic
 
 use gntp::{GntpClient, NotificationType};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("=== Basic GNTP Example ===\n");
+    println!("=== Basic GNTP Notification Example ===\n");
     
     // Create GNTP client
-    println!("Creating GNTP client...");
-    let mut client = GntpClient::new("Example App");
+    let mut client = GntpClient::new("Basic Example App");
     
     // Define notification type
-    println!("Defining notification type...");
-    let notification = NotificationType::new("message")
-        .with_display_name("Message Notification")
+    let notification = NotificationType::new("basic")
+        .with_display_name("Basic Notification")
         .with_enabled(true);
     
-    // STEP 1: Register with Growl (must be done first!)
-    println!("\nStep 1: Registering with Growl...");
-    match client.register(vec![notification]) {
-        Ok(_) => println!("✓ Registration successful"),
-        Err(e) => {
-            eprintln!("✗ Registration failed: {}", e);
-            eprintln!("\nMake sure Growl is running on localhost:23053");
-            return Err(e.into());
-        }
-    }
+    // Register with Growl
+    println!("Registering with Growl...");
+    client.register(vec![notification])?;
+    println!("✓ Registered successfully\n");
     
-    // STEP 2: Send notification
-    println!("\nStep 2: Sending notification...");
-    client.notify("message", "Hello from GNTP!", "This is a basic notification")?;
-    println!("✓ Notification sent successfully");
+    // Send notification
+    println!("Sending notification...");
+    client.notify(
+        "basic",
+        "Hello from Rust!",
+        "This is a basic GNTP notification without any icon."
+    )?;
+    println!("✓ Notification sent\n");
     
-    println!("\n✅ Example completed!");
-    println!("You should see a notification from Growl.");
+    println!("✅ Example completed!");
+    println!("\nYou should see a notification on your screen now.");
     
     Ok(())
 }
