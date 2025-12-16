@@ -12,7 +12,7 @@ example = [
 
 [package]
 name = "gntp"
-version = "0.1.8"
+version = "0.1.9"
 edition = "2021"
 authors = [
     "Hadi Cahyadi <cumulus13@gmail.com>",
@@ -68,13 +68,6 @@ features = [
 version = "1"
 
 [dev-dependencies]
-
-[features]
-default = []
-cli = [
-    "clap",
-    "clap-version-flag",
-]
 
 [profile.release]
 opt-level = 3
