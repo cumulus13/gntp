@@ -12,7 +12,7 @@ example = [
 
 [package]
 name = "gntp"
-version = "0.1.9"
+version = "0.1.10"
 edition = "2021"
 authors = [
     "Hadi Cahyadi <cumulus13@gmail.com>",
@@ -46,6 +46,13 @@ exclude = [
     "gntp.sublime-workspace",
     "gitignore_backup/*",
     "target/*",
+]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = [
+    "--cfg",
+    "docsrs",
 ]
 
 [lib]
