@@ -4,9 +4,7 @@
 // Description: Windows-safe Growl/GNTP notifications
 // License: MIT
 
-#[cfg(feature = "cli")]
 use clap::{Parser, ArgAction};
-#[cfg(feature = "cli")]
 use clap_version_flag::colorful_version_full;
 
 // IMPORTANT: Use "gntp" not "sendgrowl" because library name is "gntp"

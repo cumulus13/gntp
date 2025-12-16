@@ -17,7 +17,7 @@ edition = "2021"
 authors = [
     "Hadi Cahyadi <cumulus13@gmail.com>",
 ]
-description = "Production-ready GNTP (Growl Notification Transport Protocol) client with Windows/Android compatibility and multiple icon delivery modes"
+description = "Production-ready GNTP (Growl Notification Transport Protocol) client with Windows/Android compatibility and multiple icon delivery modes. Includes sendgrowl CLI tool."
 documentation = "https://docs.rs/gntp"
 homepage = "https://github.com/cumulus13/gntp"
 repository = "https://github.com/cumulus13/gntp"
@@ -37,16 +37,25 @@ categories = [
     "os::android-apis",
 ]
 exclude = [
-    "examples/icons/*",
-    ".gitignore",
-    "build.bat",
+    "examples/icons/*", 
+    ".gitignore", 
+    "build.bat", 
     "README.md.0",
     "sendgrowl.exe",
+    "gntp.sublime-project",
+    "gntp.sublime-workspace",
+    "gitignore_backup/*",
+    "target/*",
 ]
 
 [lib]
 name = "gntp"
 path = "src/lib.rs"
+
+[dependencies]
+# CLI dependencies (required for sendgrowl binary)
+clap = { version = "4", features = ["derive"] }
+clap-version-flag = { version = "1" }
 
 [dependencies.uuid]
 version = "1.0"
@@ -59,11 +68,11 @@ version = "4"
 features = [
     "derive",
 ]
-optional = true
+# optional = true
 
 [dependencies.clap-version-flag]
 version = "1"
-optional = true
+# optional = true
 
 [dev-dependencies]
 
