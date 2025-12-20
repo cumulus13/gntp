@@ -492,10 +492,10 @@ fn guess_mime_type(path: &Path) -> String {
 /// as required by some GNTP implementations.
 fn base64_encode(data: &[u8]) -> String {
     const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    const LINE_LENGTH: usize = 76;
+    // const LINE_LENGTH: usize = 76;
     
     let mut result = String::with_capacity((data.len() + 2) / 3 * 4);
-    let mut line_len = 0;
+    // let mut line_len = 0;
     let mut i = 0;
     
     while i < data.len() {
@@ -521,15 +521,15 @@ fn base64_encode(data: &[u8]) -> String {
         result.push(c3);
         result.push(c4);
         
-        line_len += 4;
+        // line_len += 4;
         
         // Add line break every 76 characters (MIME standard)
         // Some GNTP servers require this for proper parsing
-        if line_len >= LINE_LENGTH && i + 3 < data.len() {
-            result.push('\r');
-            result.push('\n');
-            line_len = 0;
-        }
+        // if line_len >= LINE_LENGTH && i + 3 < data.len() {
+        //     result.push('\r');
+        //     result.push('\n');
+        //     line_len = 0;
+        // }
         
         i += 3;
     }
