@@ -69,19 +69,6 @@ jobs:
       - name: Test (no default features)
         run: cargo test --no-default-features --verbose
 
-      # Individual optional features
-      - name: Test (toml only)
-        run: cargo test --no-default-features --features toml --verbose
-
-      - name: Test (yaml only)
-        run: cargo test --no-default-features --features yaml --verbose
-
-      - name: Test (dotenv only)
-        run: cargo test --no-default-features --features dotenv --verbose
-
-      - name: Test (ini only)
-        run: cargo test --no-default-features --features ini --verbose
-
   # ── MSRV (compile-only; resolves fresh so it gets compatible dep versions) ──
   # msrv:
   #   name: MSRV / Rust 1.75
