@@ -1,8 +1,10 @@
 # GNTP - Growl Notification Transport Protocol Client
 
 [![Crates.io](https://img.shields.io/crates/v/gntp.svg)](https://crates.io/crates/gntp)
-[![Documentation](https://docs.rs/gntp/badge.svg)](https://docs.rs/gntp)
+[![Documentation](https://docs.rs/gntp/badge.svg)](https://docs.rs/config-get/latest/gntp)
+[![CI](https://github.com/cumulus13/gntp/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/cumulus13/gntp/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 A robust, production-ready Rust implementation of the **Growl Notification Transport Protocol (GNTP)** for sending desktop notifications to Growl-compatible clients across multiple platforms.
 
@@ -26,7 +28,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-gntp = "0.1.12"
+gntp = "0.1.13"
 ```
 
 ## Requirements

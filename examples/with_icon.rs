@@ -1,3 +1,9 @@
+// File: examples\with_icon.rs
+// Author: Hadi Cahyadi <cumulus13@gmail.com>
+// Date: 2026-05-13
+// Description: 
+// License: MIT
+
 // examples/with_icon.rs
 // GNTP notification with icon example
 // Run with: cargo run --example with_icon

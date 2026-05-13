@@ -1,3 +1,9 @@
+// File: examples\error_handling.rs
+// Author: Hadi Cahyadi <cumulus13@gmail.com>
+// Date: 2026-05-13
+// Description: 
+// License: MIT
+
 // examples/error_handling.rs
 // Example: Proper error handling patterns
 //

@@ -24,3 +24,9 @@ README.md.0
 
 # Added entries (1 items)
 *.bat
+
+# Added entries (4 items)
+src/tmp*
+tmp*
+*.bak
+target/

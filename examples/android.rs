@@ -1,3 +1,9 @@
+// File: examples\android.rs
+// Author: Hadi Cahyadi <cumulus13@gmail.com>
+// Date: 2026-05-13
+// Description: 
+// License: MIT
+
 // examples/android.rs
 // Example: Send notifications to Growl for Android with retry
 //

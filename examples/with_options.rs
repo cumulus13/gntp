@@ -1,3 +1,9 @@
+// File: examples\with_options.rs
+// Author: Hadi Cahyadi <cumulus13@gmail.com>
+// Date: 2026-05-13
+// Description: 
+// License: MIT
+
 // examples/with_options.rs
 // GNTP with notification options (priority, sticky)
 // Run with: cargo run --example with_options

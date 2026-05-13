@@ -1,3 +1,9 @@
+// File: examples\basic.rs
+// Author: Hadi Cahyadi <cumulus13@gmail.com>
+// Date: 2026-05-13
+// Description: 
+// License: MIT
+
 // examples/basic.rs
 // Basic GNTP notification example
 //

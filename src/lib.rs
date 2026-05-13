@@ -370,7 +370,7 @@ impl Resource {
     /// ```
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, GntpError> {
         let path = path.as_ref();
-        let data = std::fs::read(&path).map_err(|e| {
+        let data = std::fs::read(path).map_err(|e| {
             GntpError::IoError(format!("Failed to read file {}: {}", path.display(), e))
         })?;
 
@@ -496,7 +496,7 @@ fn base64_encode(data: &[u8]) -> String {
     const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     // const LINE_LENGTH: usize = 76;
 
-    let mut result = String::with_capacity((data.len() + 2) / 3 * 4);
+    let mut result = String::with_capacity(data.len().div_ceil(3) * 4);
     // let mut line_len = 0;
     let mut i = 0;
 
@@ -786,11 +786,10 @@ impl GntpClient {
             packet.push_str(&format!("Application-Icon: {}{}", icon_ref, CRLF));
 
             // Only add to resources if using binary mode
-            if self.icon_mode == IconMode::Binary {
-                if seen_identifiers.insert(icon.identifier.clone()) {
+            if self.icon_mode == IconMode::Binary
+                && seen_identifiers.insert(icon.identifier.clone()) {
                     resources.push(icon.clone());
                 }
-            }
         }
 
         packet.push_str(&format!(
@@ -820,11 +819,10 @@ impl GntpClient {
                 let icon_ref = icon.get_reference(&self.icon_mode);
                 packet.push_str(&format!("Notification-Icon: {}{}", icon_ref, CRLF));
 
-                if self.icon_mode == IconMode::Binary {
-                    if seen_identifiers.insert(icon.identifier.clone()) {
+                if self.icon_mode == IconMode::Binary
+                    && seen_identifiers.insert(icon.identifier.clone()) {
                         resources.push(icon.clone());
                     }
-                }
             }
 
             packet.push_str(CRLF);
@@ -1120,7 +1118,8 @@ impl NotifyOptions {
     /// - `1` = High
     /// - `2` = Emergency
     pub fn with_priority(mut self, priority: i8) -> Self {
-        self.priority = priority.max(-2).min(2);
+        // self.priority = priority.max(-2).min(2);
+        self.priority = priority.clamp(-2, 2);
         self
     }
 

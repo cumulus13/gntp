@@ -107,6 +107,7 @@ fn load_icon(path: &Option<PathBuf>, verbose: u8) -> Option<Resource> {
 
    Android and mobile devices may have network issues, so retry is useful.
 =========================== */
+#[allow(clippy::too_many_arguments)]
 fn send_growl(
     host: &str,
     port: u16,
