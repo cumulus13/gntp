@@ -1,7 +1,7 @@
 // File: examples\with_icon.rs
 // Author: Hadi Cahyadi <cumulus13@gmail.com>
 // Date: 2026-05-13
-// Description: 
+// Description:
 // License: MIT
 
 // examples/with_icon.rs

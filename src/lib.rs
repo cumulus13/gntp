@@ -787,9 +787,10 @@ impl GntpClient {
 
             // Only add to resources if using binary mode
             if self.icon_mode == IconMode::Binary
-                && seen_identifiers.insert(icon.identifier.clone()) {
-                    resources.push(icon.clone());
-                }
+                && seen_identifiers.insert(icon.identifier.clone())
+            {
+                resources.push(icon.clone());
+            }
         }
 
         packet.push_str(&format!(
@@ -820,9 +821,10 @@ impl GntpClient {
                 packet.push_str(&format!("Notification-Icon: {}{}", icon_ref, CRLF));
 
                 if self.icon_mode == IconMode::Binary
-                    && seen_identifiers.insert(icon.identifier.clone()) {
-                        resources.push(icon.clone());
-                    }
+                    && seen_identifiers.insert(icon.identifier.clone())
+                {
+                    resources.push(icon.clone());
+                }
             }
 
             packet.push_str(CRLF);

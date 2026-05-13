@@ -1,7 +1,7 @@
 // File: examples\multiple_types.rs
 // Author: Hadi Cahyadi <cumulus13@gmail.com>
 // Date: 2026-05-13
-// Description: 
+// Description:
 // License: MIT
 
 // examples/multiple_types.rs
