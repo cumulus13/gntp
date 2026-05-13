@@ -1,7 +1,7 @@
 // File: src\lib.rs
 // Author: Hadi Cahyadi <cumulus13@gmail.com>
 // Date: 2025-12-16
-// Description: 
+// Description:
 // License: MIT
 
 //! # GNTP - Growl Notification Transport Protocol Client
@@ -215,11 +215,11 @@
 //!
 //! Author: Hadi Cahyadi <cumulus13@gmail.com>
 
+use std::collections::HashSet;
 use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
-use std::collections::HashSet;
 
 const GNTP_VERSION: &str = "1.0";
 const DEFAULT_PORT: u16 = 23053;
@@ -242,7 +242,7 @@ pub enum GntpError {
     /// - Network is unreachable
     /// - Firewall is blocking the connection
     ConnectionError(String),
-    
+
     /// I/O operation failed
     ///
     /// This can happen if:
@@ -250,7 +250,7 @@ pub enum GntpError {
     /// - Network communication error
     /// - Timeout occurred
     IoError(String),
-    
+
     /// GNTP protocol error
     ///
     /// This can happen if:
@@ -294,14 +294,14 @@ pub enum IconMode {
     /// **Recommended for:** macOS Growl, Linux Growl-compatible clients
     /// **Not recommended for:** Growl for Windows (has bugs)
     Binary,
-    
+
     /// File URL references
     ///
     /// References icons via `file://` URLs. Icon files must exist on disk
     /// and be accessible to the Growl server.
     /// **Recommended for:** When icons are already on disk and shared between apps
     FileUrl,
-    
+
     /// Data URLs with base64 encoding
     ///
     /// Embeds icons as base64-encoded data URLs directly in the packet.
@@ -309,14 +309,14 @@ pub enum IconMode {
     /// **Default mode** for maximum compatibility
     /// **Note:** Some servers (like Growl for Android) may have issues with large data URLs
     DataUrl,
-    
+
     /// HTTP/HTTPS URL references
     ///
     /// References icons via HTTP/HTTPS URLs. Icon must be accessible to the Growl server.
     /// **Recommended for:** Remote servers, mobile devices (Android)
     /// **Best compatibility** with Growl for Android
     HttpUrl,
-    
+
     /// Auto-detect best method
     ///
     /// Currently defaults to DataUrl for maximum compatibility.
@@ -338,13 +338,13 @@ pub enum IconMode {
 pub struct Resource {
     /// Unique identifier for this resource (UUID v4)
     pub identifier: String,
-    
+
     /// Binary data of the icon
     pub data: Vec<u8>,
-    
+
     /// Original file path (if loaded from file)
     pub source_path: Option<PathBuf>,
-    
+
     /// MIME type of the resource (e.g., "image/png")
     pub mime_type: String,
 }
@@ -373,10 +373,10 @@ impl Resource {
         let data = std::fs::read(&path).map_err(|e| {
             GntpError::IoError(format!("Failed to read file {}: {}", path.display(), e))
         })?;
-        
+
         let mime_type = guess_mime_type(path);
         let identifier = uuid::Uuid::new_v4().to_string();
-        
+
         Ok(Resource {
             identifier,
             data,
@@ -399,7 +399,7 @@ impl Resource {
     pub fn from_pathbuf(path: PathBuf) -> Result<Self, GntpError> {
         Self::from_file(path)
     }
-    
+
     /// Create resource from raw bytes
     ///
     /// # Arguments
@@ -422,7 +422,7 @@ impl Resource {
             mime_type: mime_type.to_string(),
         }
     }
-    
+
     /// Get icon reference string based on delivery mode
     fn get_reference(&self, mode: &IconMode) -> String {
         match mode {
@@ -447,26 +447,27 @@ impl Resource {
                     self.to_data_url()
                 }
             }
-            IconMode::DataUrl | IconMode::Auto => {
-                self.to_data_url()
-            }
+            IconMode::DataUrl | IconMode::Auto => self.to_data_url(),
         }
     }
-    
+
     /// Convert to base64 data URL
-    /// 
+    ///
     /// Note: Some GNTP servers have issues with very large data URLs.
     /// Consider using FileUrl mode if icons are >100KB.
     fn to_data_url(&self) -> String {
         // For very large images, truncate base64 to avoid packet size issues
         const MAX_DATA_URL_SIZE: usize = 500_000; // ~500KB base64 limit
-        
+
         let encoded = base64_encode(&self.data);
-        
+
         if encoded.len() > MAX_DATA_URL_SIZE {
-            eprintln!("Warning: Icon size ({} bytes) may be too large for some GNTP servers", encoded.len());
+            eprintln!(
+                "Warning: Icon size ({} bytes) may be too large for some GNTP servers",
+                encoded.len()
+            );
         }
-        
+
         format!("data:{};base64,{}", self.mime_type, encoded)
     }
 }
@@ -482,27 +483,28 @@ fn guess_mime_type(path: &Path) -> String {
         Some("svg") => "image/svg+xml",
         Some("webp") => "image/webp",
         _ => "application/octet-stream",
-    }.to_string()
+    }
+    .to_string()
 }
 
 /// RFC 4648 compliant base64 encoding
-/// 
+///
 /// CRITICAL: Some GNTP servers (like Growl for Android) are very strict about base64 format.
 /// This implementation follows RFC 4648 exactly and adds line breaks every 76 characters
 /// as required by some GNTP implementations.
 fn base64_encode(data: &[u8]) -> String {
     const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     // const LINE_LENGTH: usize = 76;
-    
+
     let mut result = String::with_capacity((data.len() + 2) / 3 * 4);
     // let mut line_len = 0;
     let mut i = 0;
-    
+
     while i < data.len() {
         let b1 = data[i];
         let b2 = if i + 1 < data.len() { data[i + 1] } else { 0 };
         let b3 = if i + 2 < data.len() { data[i + 2] } else { 0 };
-        
+
         let c1 = CHARSET[(b1 >> 2) as usize] as char;
         let c2 = CHARSET[(((b1 & 0x03) << 4) | (b2 >> 4)) as usize] as char;
         let c3 = if i + 1 < data.len() {
@@ -515,14 +517,14 @@ fn base64_encode(data: &[u8]) -> String {
         } else {
             '='
         };
-        
+
         result.push(c1);
         result.push(c2);
         result.push(c3);
         result.push(c4);
-        
+
         // line_len += 4;
-        
+
         // Add line break every 76 characters (MIME standard)
         // Some GNTP servers require this for proper parsing
         // if line_len >= LINE_LENGTH && i + 3 < data.len() {
@@ -530,10 +532,10 @@ fn base64_encode(data: &[u8]) -> String {
         //     result.push('\n');
         //     line_len = 0;
         // }
-        
+
         i += 3;
     }
-    
+
     result
 }
 
@@ -551,7 +553,7 @@ fn base64_encode(data: &[u8]) -> String {
 /// ```no_run
 /// # use gntp::{NotificationType, Resource};
 /// let icon = Resource::from_file("alert.png")?;
-/// 
+///
 /// let notification = NotificationType::new("alert")
 ///     .with_display_name("Alert Notification")
 ///     .with_enabled(true)
@@ -562,13 +564,13 @@ fn base64_encode(data: &[u8]) -> String {
 pub struct NotificationType {
     /// Internal name (used in notify())
     pub name: String,
-    
+
     /// Display name shown to user
     pub display_name: Option<String>,
-    
+
     /// Whether this notification type is enabled
     pub enabled: bool,
-    
+
     /// Optional icon for this notification type
     pub icon: Option<Resource>,
 }
@@ -587,19 +589,19 @@ impl NotificationType {
             icon: None,
         }
     }
-    
+
     /// Set display name (shown to user)
     pub fn with_display_name(mut self, display_name: &str) -> Self {
         self.display_name = Some(display_name.to_string());
         self
     }
-    
+
     /// Set icon for this notification type
     pub fn with_icon(mut self, icon: Resource) -> Self {
         self.icon = Some(icon);
         self
     }
-    
+
     /// Set whether this notification type is enabled
     pub fn with_enabled(mut self, enabled: bool) -> Self {
         self.enabled = enabled;
@@ -632,26 +634,26 @@ impl NotificationType {
 pub struct GntpClient {
     /// Growl server hostname
     pub host: String,
-    
+
     /// Growl server port
     pub port: u16,
-    
+
     /// Application name
     pub application_name: String,
-    
+
     /// Optional application icon
     pub application_icon: Option<Resource>,
-    
+
     /// Optional password for authentication (not yet implemented)
     #[allow(dead_code)]
     pub password: Option<String>,
-    
+
     /// Whether register() has been called
     registered: bool,
-    
+
     /// Enable debug output
     pub debug: bool,
-    
+
     /// Icon delivery mode
     pub icon_mode: IconMode,
 }
@@ -681,7 +683,7 @@ impl GntpClient {
             icon_mode: IconMode::DataUrl, // Safe default for Windows
         }
     }
-    
+
     /// Set Growl server hostname
     ///
     /// # Example
@@ -695,7 +697,7 @@ impl GntpClient {
         self.host = host.to_string();
         self
     }
-    
+
     /// Set Growl server port
     ///
     /// Default is 23053 (standard GNTP port)
@@ -703,13 +705,13 @@ impl GntpClient {
         self.port = port;
         self
     }
-    
+
     /// Set application icon
     pub fn with_icon(mut self, icon: Resource) -> Self {
         self.application_icon = Some(icon);
         self
     }
-    
+
     /// Set password for authentication
     ///
     /// **Note:** Password authentication is not yet implemented
@@ -718,7 +720,7 @@ impl GntpClient {
         self.password = Some(password.to_string());
         self
     }
-    
+
     /// Enable debug output
     ///
     /// When enabled, prints detailed packet information to stdout
@@ -726,7 +728,7 @@ impl GntpClient {
         self.debug = debug;
         self
     }
-    
+
     /// Set icon delivery mode
     ///
     /// # Example
@@ -740,7 +742,7 @@ impl GntpClient {
         self.icon_mode = mode;
         self
     }
-    
+
     /// Register application with Growl
     ///
     /// This **must** be called before sending notifications.
@@ -769,17 +771,20 @@ impl GntpClient {
         let mut packet = String::new();
         let mut resources = Vec::new();
         let mut seen_identifiers = HashSet::new();
-        
+
         // Build REGISTER packet
         packet.push_str(&format!("GNTP/{} REGISTER NONE{}", GNTP_VERSION, CRLF));
-        packet.push_str(&format!("Application-Name: {}{}", self.application_name, CRLF));
-        
+        packet.push_str(&format!(
+            "Application-Name: {}{}",
+            self.application_name, CRLF
+        ));
+
         // Application icon - DON'T use this for notification icons
         // This is for the application itself, not individual notifications
         if let Some(ref icon) = self.application_icon {
             let icon_ref = icon.get_reference(&self.icon_mode);
             packet.push_str(&format!("Application-Icon: {}{}", icon_ref, CRLF));
-            
+
             // Only add to resources if using binary mode
             if self.icon_mode == IconMode::Binary {
                 if seen_identifiers.insert(icon.identifier.clone()) {
@@ -787,37 +792,44 @@ impl GntpClient {
                 }
             }
         }
-        
-        packet.push_str(&format!("Notifications-Count: {}{}", notifications.len(), CRLF));
+
+        packet.push_str(&format!(
+            "Notifications-Count: {}{}",
+            notifications.len(),
+            CRLF
+        ));
         packet.push_str(CRLF);
-        
+
         // Each notification type
         for notif in &notifications {
             packet.push_str(&format!("Notification-Name: {}{}", notif.name, CRLF));
-            
+
             if let Some(ref display) = notif.display_name {
                 packet.push_str(&format!("Notification-Display-Name: {}{}", display, CRLF));
             }
-            
-            packet.push_str(&format!("Notification-Enabled: {}{}", 
-                if notif.enabled { "True" } else { "False" }, CRLF));
-            
+
+            packet.push_str(&format!(
+                "Notification-Enabled: {}{}",
+                if notif.enabled { "True" } else { "False" },
+                CRLF
+            ));
+
             // IMPORTANT: Notification type icon is used during NOTIFY
             // But we must declare it here during REGISTER
             if let Some(ref icon) = notif.icon {
                 let icon_ref = icon.get_reference(&self.icon_mode);
                 packet.push_str(&format!("Notification-Icon: {}{}", icon_ref, CRLF));
-                
+
                 if self.icon_mode == IconMode::Binary {
                     if seen_identifiers.insert(icon.identifier.clone()) {
                         resources.push(icon.clone());
                     }
                 }
             }
-            
+
             packet.push_str(CRLF);
         }
-        
+
         // Add binary resources if using binary mode
         if self.icon_mode == IconMode::Binary {
             for resource in &resources {
@@ -826,7 +838,7 @@ impl GntpClient {
                 packet.push_str(CRLF);
             }
         }
-        
+
         if self.debug {
             println!("\n=== REGISTER PACKET (Mode: {:?}) ===", self.icon_mode);
             println!("{}", packet);
@@ -836,17 +848,17 @@ impl GntpClient {
             }
             println!("======================================\n");
         }
-        
+
         let response = if self.icon_mode == IconMode::Binary {
             self.send_packet_with_resources(&packet, &resources)?
         } else {
             self.send_packet(&packet)?
         };
-        
+
         self.registered = true;
         Ok(response)
     }
-    
+
     /// Send a notification
     ///
     /// **Note:** You must call `register()` first!
@@ -866,14 +878,15 @@ impl GntpClient {
     /// client.notify("alert", "Title", "Message")?;
     /// # Ok::<(), gntp::GntpError>(())
     /// ```
-    pub fn notify(&self, 
-                  notification_name: &str, 
-                  title: &str, 
-                  text: &str) -> Result<String, GntpError> {
-        self.notify_with_options(notification_name, title, text, 
-                                 NotifyOptions::default())
+    pub fn notify(
+        &self,
+        notification_name: &str,
+        title: &str,
+        text: &str,
+    ) -> Result<String, GntpError> {
+        self.notify_with_options(notification_name, title, text, NotifyOptions::default())
     }
-    
+
     /// Send notification with additional options
     ///
     /// # Example
@@ -889,45 +902,53 @@ impl GntpClient {
     /// client.notify_with_options("alert", "Title", "Text", options)?;
     /// # Ok::<(), gntp::GntpError>(())
     /// ```
-    pub fn notify_with_options(&self,
-                               notification_name: &str,
-                               title: &str,
-                               text: &str,
-                               options: NotifyOptions) -> Result<String, GntpError> {
+    pub fn notify_with_options(
+        &self,
+        notification_name: &str,
+        title: &str,
+        text: &str,
+        options: NotifyOptions,
+    ) -> Result<String, GntpError> {
         if !self.registered {
             return Err(GntpError::ProtocolError(
-                "Must call register() before notify()".to_string()
+                "Must call register() before notify()".to_string(),
             ));
         }
-        
+
         let mut packet = String::new();
         let mut resources = Vec::new();
-        
+
         packet.push_str(&format!("GNTP/{} NOTIFY NONE{}", GNTP_VERSION, CRLF));
-        packet.push_str(&format!("Application-Name: {}{}", self.application_name, CRLF));
+        packet.push_str(&format!(
+            "Application-Name: {}{}",
+            self.application_name, CRLF
+        ));
         packet.push_str(&format!("Notification-Name: {}{}", notification_name, CRLF));
         packet.push_str(&format!("Notification-Title: {}{}", title, CRLF));
         packet.push_str(&format!("Notification-Text: {}{}", text, CRLF));
-        
+
         if options.sticky {
             packet.push_str(&format!("Notification-Sticky: True{}", CRLF));
         }
-        
+
         if options.priority != 0 {
-            packet.push_str(&format!("Notification-Priority: {}{}", options.priority, CRLF));
+            packet.push_str(&format!(
+                "Notification-Priority: {}{}",
+                options.priority, CRLF
+            ));
         }
-        
+
         if let Some(ref icon) = options.icon {
             let icon_ref = icon.get_reference(&self.icon_mode);
             packet.push_str(&format!("Notification-Icon: {}{}", icon_ref, CRLF));
-            
+
             if self.icon_mode == IconMode::Binary {
                 resources.push(icon.clone());
             }
         }
-        
+
         packet.push_str(CRLF);
-        
+
         if self.icon_mode == IconMode::Binary {
             for resource in &resources {
                 packet.push_str(&format!("Identifier: {}{}", resource.identifier, CRLF));
@@ -935,47 +956,49 @@ impl GntpClient {
                 packet.push_str(CRLF);
             }
         }
-        
+
         if self.debug {
             println!("\n=== NOTIFY PACKET (Mode: {:?}) ===", self.icon_mode);
             println!("{}", packet);
             println!("====================================\n");
         }
-        
+
         if self.icon_mode == IconMode::Binary {
             self.send_packet_with_resources(&packet, &resources)
         } else {
             self.send_packet(&packet)
         }
     }
-    
+
     /// Send text-only packet (for DataUrl and FileUrl modes)
     fn send_packet(&self, packet: &str) -> Result<String, GntpError> {
         let address = format!("{}:{}", self.host, self.port);
-        
+
         if self.debug {
             println!("Connecting to {}...", address);
         }
-        
-        let mut stream = TcpStream::connect(&address)
-            .map_err(|e| GntpError::ConnectionError(format!("Failed to connect to {}: {}", 
-                address, e)))?;
-        
+
+        let mut stream = TcpStream::connect(&address).map_err(|e| {
+            GntpError::ConnectionError(format!("Failed to connect to {}: {}", address, e))
+        })?;
+
         stream.set_read_timeout(Some(Duration::from_secs(10)))?;
         stream.set_write_timeout(Some(Duration::from_secs(10)))?;
-        
+
         stream.write_all(packet.as_bytes())?;
         stream.flush()?;
-        
+
         if self.debug {
             println!("Packet sent, waiting for response...");
         }
-        
+
         let mut response = String::new();
         match stream.read_to_string(&mut response) {
             Ok(_) => {}
-            Err(e) if e.kind() == std::io::ErrorKind::ConnectionReset 
-                   || e.kind() == std::io::ErrorKind::UnexpectedEof => {
+            Err(e)
+                if e.kind() == std::io::ErrorKind::ConnectionReset
+                    || e.kind() == std::io::ErrorKind::UnexpectedEof =>
+            {
                 if self.debug {
                     println!("Connection closed (OK)");
                 }
@@ -983,52 +1006,64 @@ impl GntpClient {
             }
             Err(e) => return Err(e.into()),
         }
-        
+
         if response.contains("-ERROR") {
-            return Err(GntpError::ProtocolError(format!("Server error: {}", response)));
+            return Err(GntpError::ProtocolError(format!(
+                "Server error: {}",
+                response
+            )));
         }
-        
+
         Ok(response)
     }
-    
+
     /// Send packet with binary resources (for Binary mode)
-    fn send_packet_with_resources(&self, packet: &str, resources: &[Resource]) -> Result<String, GntpError> {
+    fn send_packet_with_resources(
+        &self,
+        packet: &str,
+        resources: &[Resource],
+    ) -> Result<String, GntpError> {
         let address = format!("{}:{}", self.host, self.port);
-        
-        let mut stream = TcpStream::connect(&address)
-            .map_err(|e| GntpError::ConnectionError(format!("Failed to connect to {}: {}", 
-                address, e)))?;
-        
+
+        let mut stream = TcpStream::connect(&address).map_err(|e| {
+            GntpError::ConnectionError(format!("Failed to connect to {}: {}", address, e))
+        })?;
+
         stream.set_read_timeout(Some(Duration::from_secs(10)))?;
         stream.set_write_timeout(Some(Duration::from_secs(10)))?;
-        
+
         // Send text packet
         stream.write_all(packet.as_bytes())?;
-        
+
         // Send binary resources
         for resource in resources {
             stream.write_all(&resource.data)?;
             stream.write_all(CRLF.as_bytes())?;
         }
-        
+
         // Message termination
         stream.write_all(CRLF.as_bytes())?;
         stream.flush()?;
-        
+
         let mut response = String::new();
         match stream.read_to_string(&mut response) {
             Ok(_) => {}
-            Err(e) if e.kind() == std::io::ErrorKind::ConnectionReset 
-                   || e.kind() == std::io::ErrorKind::UnexpectedEof => {
+            Err(e)
+                if e.kind() == std::io::ErrorKind::ConnectionReset
+                    || e.kind() == std::io::ErrorKind::UnexpectedEof =>
+            {
                 return Ok(String::new());
             }
             Err(e) => return Err(e.into()),
         }
-        
+
         if response.contains("-ERROR") {
-            return Err(GntpError::ProtocolError(format!("Server error: {}", response)));
+            return Err(GntpError::ProtocolError(format!(
+                "Server error: {}",
+                response
+            )));
         }
-        
+
         Ok(response)
     }
 }
@@ -1046,7 +1081,7 @@ impl GntpClient {
 /// ```no_run
 /// # use gntp::{NotifyOptions, Resource};
 /// let icon = Resource::from_file("icon.png")?;
-/// 
+///
 /// let options = NotifyOptions::new()
 ///     .with_sticky(true)
 ///     .with_priority(2)
@@ -1057,10 +1092,10 @@ impl GntpClient {
 pub struct NotifyOptions {
     /// Keep notification on screen until dismissed
     pub sticky: bool,
-    
+
     /// Priority level (-2 = very low, 0 = normal, 2 = emergency)
     pub priority: i8,
-    
+
     /// Optional icon for this specific notification
     pub icon: Option<Resource>,
 }
@@ -1070,13 +1105,13 @@ impl NotifyOptions {
     pub fn new() -> Self {
         Self::default()
     }
-    
+
     /// Set sticky mode (notification stays until dismissed)
     pub fn with_sticky(mut self, sticky: bool) -> Self {
         self.sticky = sticky;
         self
     }
-    
+
     /// Set priority (-2 to 2)
     ///
     /// - `-2` = Very Low
@@ -1088,7 +1123,7 @@ impl NotifyOptions {
         self.priority = priority.max(-2).min(2);
         self
     }
-    
+
     /// Set icon for this notification
     pub fn with_icon(mut self, icon: Resource) -> Self {
         self.icon = Some(icon);

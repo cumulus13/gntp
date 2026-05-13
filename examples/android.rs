@@ -3,29 +3,28 @@
 //
 // Run with: cargo run --example android
 
-use gntp::{GntpClient, NotificationType, Resource, IconMode, NotifyOptions};
+use gntp::{GntpClient, IconMode, NotificationType, NotifyOptions, Resource};
 use std::env;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Growl for Android Example ===\n");
-    
+
     // Get Android device IP from environment
-    let android_host = env::var("ANDROID_HOST")
-        .unwrap_or_else(|_| {
-            println!("⚠ ANDROID_HOST not set, using default");
-            println!("  Set with: set ANDROID_HOST=192.168.1.100\n");
-            "192.168.1.100".to_string()
-        });
-    
+    let android_host = env::var("ANDROID_HOST").unwrap_or_else(|_| {
+        println!("⚠ ANDROID_HOST not set, using default");
+        println!("  Set with: set ANDROID_HOST=192.168.1.100\n");
+        "192.168.1.100".to_string()
+    });
+
     println!("Target Android device: {}", android_host);
-    
+
     // Create client optimized for Android
     let mut client = GntpClient::new("Android Example")
         .with_host(&android_host)
         .with_port(23053)
         .with_icon_mode(IconMode::DataUrl) // Best for Android
         .with_debug(false);
-    
+
     // Try to load icon (optional)
     let icon = match Resource::from_file("icon.png") {
         Ok(icon) => {
@@ -37,27 +36,33 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             None
         }
     };
-    
+
     // Define notification type with icon
-    let mut notification = NotificationType::new("android")
-        .with_display_name("Android Notification");
-    
+    let mut notification =
+        NotificationType::new("android").with_display_name("Android Notification");
+
     if let Some(icon) = icon {
         notification = notification.with_icon(icon);
         println!("✓ Icon attached to notification");
     }
-    
+
     println!();
-    
+
     // Register with retry (Android may need retry due to network)
     println!("Registering with Growl for Android...");
     let mut register_ok = false;
-    
+
     for attempt in 1..=3 {
         match client.register(vec![notification.clone()]) {
             Ok(_) => {
-                println!("✓ Registered successfully{}\n", 
-                    if attempt > 1 { format!(" (attempt {})", attempt) } else { String::new() });
+                println!(
+                    "✓ Registered successfully{}\n",
+                    if attempt > 1 {
+                        format!(" (attempt {})", attempt)
+                    } else {
+                        String::new()
+                    }
+                );
                 register_ok = true;
                 break;
             }
@@ -77,22 +82,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     }
-    
+
     if !register_ok {
         return Err("Registration failed".into());
     }
-    
+
     // Send notification with options
     println!("Sending notification...");
     let options = NotifyOptions::new()
         .with_sticky(false) // Don't make it sticky on mobile
-        .with_priority(1);  // High priority
-    
+        .with_priority(1); // High priority
+
     match client.notify_with_options(
         "android",
         "Hello Android!",
         "This notification was sent from Rust",
-        options
+        options,
     ) {
         Ok(_) => {
             println!("✓ Notification sent\n");
@@ -103,6 +108,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             return Err(e.into());
         }
     }
-    
+
     Ok(())
 }

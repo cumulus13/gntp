@@ -26,7 +26,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-gntp = "0.1.5"
+gntp = "0.1.12"
 ```
 
 ## Requirements
